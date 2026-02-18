@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda tu Demo — Justo</title>
+  <link rel="stylesheet" href="/css/booking.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <span class="logo-text">Justo</span>
+          <span class="logo-badge">Demo</span>
+        </div>
+        <p class="header-sub">Agenda una demo de 30 minutos con nuestro equipo</p>
+      </div>
+    </header>
+
+    <!-- ── Main Content ── -->
+    <main class="main container">
+
+      <!-- Step indicators -->
+      <div class="steps" id="steps">
+        <div class="step active" data-step="1">
+          <div class="step-num">1</div>
+          <span>Tus datos</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step" data-step="2">
+          <div class="step-num">2</div>
+          <span>Elige horario</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step" data-step="3">
+          <div class="step-num">3</div>
+          <span>Confirmación</span>
+        </div>
+      </div>
+
+      <!-- ── Step 1: Qualification Form ── -->
+      <div class="card" id="step-1">
+        <h2 class="card-title">Cuéntanos sobre tu restaurante</h2>
+        <p class="card-subtitle">Estos datos nos ayudan a asignarte el mejor vendedor.</p>
+
+        <form id="qualForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Tu nombre completo *</label>
+              <input type="text" id="name" name="name" placeholder="Juan Pérez" required />
+              <span class="error-msg" id="name-err"></span>
+            </div>
+            <div class="form-group">
+              <label for="email">Correo electrónico *</label>
+              <input type="email" id="email" name="email" placeholder="juan@restaurante.com" required />
+              <span class="error-msg" id="email-err"></span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Teléfono / WhatsApp *</label>
+              <input type="tel" id="phone" name="phone" placeholder="+51 999 999 999" required />
+              <span class="error-msg" id="phone-err"></span>
+            </div>
+            <div class="form-group">
+              <label for="restaurantName">Nombre del restaurante *</label>
+              <input type="text" id="restaurantName" name="restaurantName" placeholder="La Cevichería" required />
+              <span class="error-msg" id="restaurantName-err"></span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city">Ciudad *</label>
+              <input type="text" id="city" name="city" placeholder="Lima" required />
+              <span class="error-msg" id="city-err"></span>
+            </div>
+            <div class="form-group">
+              <label for="country">País *</label>
+              <select id="country" name="country" required>
+                <option value="">Selecciona un país</option>
+                <option value="PE">Perú</option>
+                <option value="MX">México</option>
+                <option value="CO">Colombia</option>
+                <option value="CL">Chile</option>
+                <option value="AR">Argentina</option>
+                <option value="EC">Ecuador</option>
+                <option value="BO">Bolivia</option>
+              </select>
+              <span class="error-msg" id="country-err"></span>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">
+            Ver horarios disponibles →
+          </button>
+        </form>
+      </div>
+
+      <!-- ── Step 2: Slot Picker ── -->
+      <div class="card hidden" id="step-2">
+        <h2 class="card-title">Elige un horario</h2>
+        <p class="card-subtitle">Todos los horarios se muestran en tu zona horaria: <strong id="tzDisplay"></strong></p>
+
+        <div id="calendarNav" class="cal-nav">
+          <button class="cal-nav-btn" id="prevWeek" onclick="prevWeek()">← Semana anterior</button>
+          <span id="weekRange" class="week-range"></span>
+          <button class="cal-nav-btn" id="nextWeek" onclick="nextWeek()">Semana siguiente →</button>
+        </div>
+
+        <div id="slotsContainer" class="slots-container">
+          <div class="loading">Cargando horarios disponibles...</div>
+        </div>
+
+        <button class="btn btn-ghost" onclick="goToStep(1)">← Volver</button>
+      </div>
+
+      <!-- ── Step 3: Confirmation ── -->
+      <div class="card hidden" id="step-3">
+        <div class="confirm-icon">✅</div>
+        <h2 class="card-title">¡Tu demo está confirmada!</h2>
+        <p class="card-subtitle">Te enviamos un correo con todos los detalles.</p>
+
+        <div class="confirm-details" id="confirmDetails"></div>
+
+        <div class="confirm-actions">
+          <a id="calLink" href="#" target="_blank" class="btn btn-primary hidden">
+            📅 Ver en Google Calendar
+          </a>
+          <p class="confirm-note">¿Necesitas reagendar? Responde al correo de confirmación.</p>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>© 2024 Justo · Powered by technology for restaurants</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/js/booking.js"></script>
+</body>
+</html>

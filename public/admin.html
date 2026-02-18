@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Justo Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,sans-serif;background:#f9fafb;color:#1f2937;min-height:100vh}
+    .header{background:#1d4ed8;color:white;padding:16px 24px;display:flex;align-items:center;gap:12px}
+    .header h1{font-size:1.2rem;font-weight:700}
+    .header span{background:rgba(255,255,255,0.2);padding:4px 10px;border-radius:20px;font-size:0.75rem}
+    .container{max-width:960px;margin:0 auto;padding:24px}
+    .card{background:white;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.06);margin-bottom:24px;overflow:hidden}
+    .card-header{padding:20px 24px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between}
+    .card-header h2{font-size:1rem;font-weight:600}
+    .card-body{padding:24px}
+    table{width:100%;border-collapse:collapse;font-size:0.9rem}
+    th{text-align:left;padding:10px 12px;color:#6b7280;font-weight:500;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #f3f4f6}
+    td{padding:10px 12px;border-bottom:1px solid #f9fafb}
+    tr:last-child td{border-bottom:none}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600}
+    .badge-green{background:#f0fdf4;color:#16a34a}
+    .badge-gray{background:#f3f4f6;color:#6b7280}
+    .btn{display:inline-flex;align-items:center;padding:8px 16px;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;font-family:Inter,sans-serif;text-decoration:none;transition:all 0.15s}
+    .btn-primary{background:#2563eb;color:white}
+    .btn-primary:hover{background:#1d4ed8}
+    .btn-sm{padding:5px 12px;font-size:0.8rem}
+    .login-screen{max-width:400px;margin:80px auto;text-align:center}
+    .login-screen input{width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.95rem;margin:12px 0;outline:none}
+    .login-screen input:focus{border-color:#2563eb}
+    .empty{text-align:center;padding:40px;color:#9ca3af;font-size:0.9rem}
+    #loginSection{display:block}
+    #adminSection{display:none}
+    .metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .metric-card{background:#f8faff;border:1px solid #e0e7ff;border-radius:10px;padding:20px;text-align:center}
+    .metric-num{font-size:2rem;font-weight:700;color:#2563eb}
+    .metric-label{font-size:0.85rem;color:#6b7280;margin-top:4px}
+    @media(max-width:600px){.metrics-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Justo Booking — Admin</h1>
+  <span id="envBadge">MVP</span>
+</div>
+
+<!-- Login -->
+<div class="container" id="loginSection">
+  <div class="login-screen">
+    <h2 style="margin-bottom:8px">Panel de Administración</h2>
+    <p style="color:#6b7280;font-size:0.9rem;margin-bottom:20px">Ingresa tu clave de admin</p>
+    <input type="password" id="adminKey" placeholder="Admin API Key" />
+    <button class="btn btn-primary" style="width:100%" onclick="login()">Entrar</button>
+    <p id="loginErr" style="color:#dc2626;font-size:0.85rem;margin-top:8px"></p>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div class="container" id="adminSection">
+
+  <!-- Metrics -->
+  <div class="card">
+    <div class="card-header"><h2>📊 Métricas</h2></div>
+    <div class="card-body">
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-num" id="metTotal">—</div>
+          <div class="metric-label">Total demos confirmadas</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-num" id="metSellers">—</div>
+          <div class="metric-label">Vendedores activos</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-num" id="metCountries">—</div>
+          <div class="metric-label">Países cubiertos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sellers -->
+  <div class="card">
+    <div class="card-header">
+      <h2>👥 Vendedores</h2>
+    </div>
+    <div class="card-body" style="padding:0">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>País</th>
+            <th>Timezone</th>
+            <th>Estado</th>
+            <th>Demos</th>
+            <th>Calendario</th>
+            <th>Última asignación</th>
+          </tr>
+        </thead>
+        <tbody id="sellersTable">
+          <tr><td colspan="7" class="empty">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Meetings -->
+  <div class="card">
+    <div class="card-header"><h2>📅 Demos recientes</h2></div>
+    <div class="card-body" style="padding:0">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha (UTC)</th>
+            <th>Restaurante</th>
+            <th>Contacto</th>
+            <th>País</th>
+            <th>Vendedor</th>
+            <th>Pipedrive</th>
+          </tr>
+        </thead>
+        <tbody id="meetingsTable">
+          <tr><td colspan="6" class="empty">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let ADMIN_KEY = '';
+
+function login() {
+  ADMIN_KEY = document.getElementById('adminKey').value;
+  loadAll();
+}
+
+async function apiFetch(path) {
+  const res = await fetch(path, { headers: { 'x-admin-key': ADMIN_KEY } });
+  if (res.status === 401) {
+    document.getElementById('loginErr').textContent = 'Clave incorrecta';
+    return null;
+  }
+  return res.json();
+}
+
+async function loadAll() {
+  const [sellers, meetings, metrics] = await Promise.all([
+    apiFetch('/api/admin/sellers'),
+    apiFetch('/api/admin/meetings'),
+    apiFetch('/api/admin/metrics'),
+  ]);
+
+  if (!sellers) return;
+
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('adminSection').style.display = 'block';
+
+  // Metrics
+  document.getElementById('metTotal').textContent = metrics.metrics.totalMeetings;
+  document.getElementById('metSellers').textContent = sellers.sellers.filter(s => s.isActive).length;
+  document.getElementById('metCountries').textContent = metrics.metrics.perCountry.length;
+
+  // Sellers table
+  const sellersHtml = sellers.sellers.map(s => `
+    <tr>
+      <td><strong>${s.name}</strong><br><small style="color:#9ca3af">${s.email}</small></td>
+      <td>${s.country}</td>
+      <td style="font-size:0.8rem">${s.timezone}</td>
+      <td><span class="badge ${s.isActive ? 'badge-green' : 'badge-gray'}">${s.isActive ? 'Activo' : 'Inactivo'}</span></td>
+      <td>${s.totalMeetings}</td>
+      <td>${s.tokenExpiry
+        ? `<span class="badge badge-green">Conectado</span>`
+        : `<a href="/api/admin/sellers/${s.id}/connect-calendar?x-admin-key=${ADMIN_KEY}" class="btn btn-primary btn-sm">Conectar</a>`
+      }</td>
+      <td style="font-size:0.8rem">${s.lastAssigned ? new Date(s.lastAssigned).toLocaleString('es-ES') : '—'}</td>
+    </tr>
+  `).join('');
+  document.getElementById('sellersTable').innerHTML = sellersHtml || '<tr><td colspan="7" class="empty">Sin vendedores</td></tr>';
+
+  // Meetings table
+  const meetingsHtml = meetings.meetings.slice(0, 20).map(m => `
+    <tr>
+      <td style="font-size:0.85rem">${new Date(m.startUtc).toLocaleString('es-ES')}</td>
+      <td>${m.restaurantName}</td>
+      <td>${m.prospectName}<br><small style="color:#9ca3af">${m.prospectEmail}</small></td>
+      <td>${m.country}</td>
+      <td>${m.seller?.name || '—'}</td>
+      <td>${m.pipedriveDealUrl ? `<a href="${m.pipedriveDealUrl}" target="_blank" class="btn btn-primary btn-sm">Ver deal</a>` : '—'}</td>
+    </tr>
+  `).join('');
+  document.getElementById('meetingsTable').innerHTML = meetingsHtml || '<tr><td colspan="6" class="empty">Sin demos</td></tr>';
+}
+
+// Check URL params
+const params = new URLSearchParams(location.search);
+if (params.get('connected')) showMsg('✅ Calendario conectado exitosamente');
+if (params.get('error')) showMsg('❌ Error: ' + params.get('error'), true);
+
+function showMsg(msg, err) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;top:16px;right:16px;padding:12px 20px;background:${err ? '#dc2626' : '#16a34a'};color:white;border-radius:8px;font-size:0.9rem;z-index:999`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Seller {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  country       String    // ISO 3166-1 alpha-2 (e.g. "PE", "MX", "CO")
+  region        String?   // e.g. "Lima", "CDMX"
+  timezone      String    // IANA timezone (e.g. "America/Lima")
+  isActive      Boolean   @default(true)
+  calendarId    String    // Google Calendar ID (usually email)
+  
+  // Google OAuth tokens (encrypted at rest via env key ideally)
+  accessToken   String?   @db.Text
+  refreshToken  String?   @db.Text
+  tokenExpiry   DateTime?
+
+  // Routing state
+  lastAssigned  DateTime?
+  totalMeetings Int       @default(0)
+
+  meetings      Meeting[]
+  metrics       SellerMetric[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([isActive, country])
+}
+
+model Meeting {
+  id              String    @id @default(uuid())
+  sellerId        String
+  seller          Seller    @relation(fields: [sellerId], references: [id])
+
+  // Prospect info
+  prospectName    String
+  prospectEmail   String
+  prospectPhone   String
+  restaurantName  String
+  city            String
+  country         String
+
+  // Scheduling
+  startUtc        DateTime
+  endUtc          DateTime
+  timezone        String    // prospect's detected timezone
+
+  // Google Calendar
+  googleEventId   String?
+  calendarLink    String?
+
+  // Pipedrive
+  pipedriveId     String?
+  pipedriveDealUrl String?
+
+  status          MeetingStatus @default(CONFIRMED)
+  routingStrategy String        @default("round_robin")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([sellerId, startUtc])
+  @@index([startUtc, status])
+}
+
+model RoutingState {
+  id            String    @id @default("global")
+  lastSellerId  String?
+  updatedAt     DateTime  @updatedAt
+}
+
+model SellerMetric {
+  id            String    @id @default(uuid())
+  sellerId      String
+  seller        Seller    @relation(fields: [sellerId], references: [id])
+  country       String
+  date          DateTime  @db.Date  // truncated to day
+  meetingCount  Int       @default(0)
+
+  @@unique([sellerId, country, date])
+  @@index([sellerId, date])
+}
+
+model SlotLock {
+  id        String    @id // "{sellerId}:{slotStart ISO}"
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+}
+
+enum MeetingStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
