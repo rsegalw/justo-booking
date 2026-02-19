@@ -5,24 +5,25 @@ const { getAuthUrl, handleAuthCallback } = require('../services/googleCalendarSe
 const router = express.Router();
 
 /**
- * GET /api/auth/google/:sellerId
+ * GET /api/auth/google?sellerId=...
  * Redirects the seller to Google's OAuth consent screen.
  */
-router.get('/google/:sellerId', (req, res) => {
-  const url = getAuthUrl(req.params.sellerId);
+router.get('/google', (req, res) => {
+  const sellerId = req.query.sellerId;
+  if (!sellerId) return res.status(400).send('Missing sellerId');
+  const url = getAuthUrl(sellerId);
   res.redirect(url);
 });
 
 /**
  * GET /api/auth/google/callback
  * Google redirects here after the seller grants permissions.
- * state = sellerId
  */
 router.get('/google/callback', async (req, res) => {
   const { code, state: sellerId, error } = req.query;
 
   if (error) {
-    return res.redirect(`/admin?error=${encodeURIComponent(error)}`);
+    return res.redirect(`/admin.html?error=${encodeURIComponent(error)}`);
   }
 
   if (!code || !sellerId) {
@@ -31,11 +32,20 @@ router.get('/google/callback', async (req, res) => {
 
   try {
     await handleAuthCallback(code, sellerId);
-    res.redirect('/admin?connected=true');
+    res.redirect('/admin.html?connected=true');
   } catch (err) {
     console.error('OAuth callback error:', err.message);
-    res.redirect(`/admin?error=${encodeURIComponent(err.message)}`);
+    res.redirect(`/admin.html?error=${encodeURIComponent(err.message)}`);
   }
+});
+
+/**
+ * GET /api/auth/google/:sellerId
+ * Alternative format with sellerId in path.
+ */
+router.get('/google/:sellerId', (req, res) => {
+  const url = getAuthUrl(req.params.sellerId);
+  res.redirect(url);
 });
 
 module.exports = router;
