@@ -10,6 +10,9 @@ COPY . .
 
 RUN npx prisma generate
 
+COPY start.sh ./
+RUN chmod +x start.sh
+
 EXPOSE 3000
 
-CMD ["node", "src/server.js"]
+CMD ["sh", "start.sh"]
