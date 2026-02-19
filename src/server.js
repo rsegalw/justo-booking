@@ -49,14 +49,29 @@ app.use(errorHandler);
 
 // ── Start ──────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, async () => {
-  console.log(`✅ Justo Booking running on port ${PORT}`);
+
+async function startServer() {
+  // Run migrations on startup
   try {
-    await prisma.$connect();
-    console.log('✅ Database connected');
+    const { execSync } = require('child_process');
+    console.log('🔄 Running database migrations...');
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    console.log('✅ Migrations complete');
   } catch (err) {
-    console.error('❌ Database connection failed:', err.message);
+    console.error('⚠️ Migration warning:', err.message);
   }
-});
+
+  app.listen(PORT, async () => {
+    console.log(`✅ Justo Booking running on port ${PORT}`);
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected');
+    } catch (err) {
+      console.error('❌ Database connection failed:', err.message);
+    }
+  });
+}
+
+startServer();
 
 module.exports = app;
