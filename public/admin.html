@@ -174,8 +174,8 @@ async function loadAll() {
       <td><span class="badge ${s.isActive ? 'badge-green' : 'badge-gray'}">${s.isActive ? 'Activo' : 'Inactivo'}</span></td>
       <td>${s.totalMeetings}</td>
       <td>${s.tokenExpiry
-        ? `<span class="badge badge-green">Conectado</span>`
-        : `<a href="/api/admin/sellers/${s.id}/connect-calendar?x-admin-key=${ADMIN_KEY}" class="btn btn-primary btn-sm">Conectar</a>`
+        ? `<span class=\"badge badge-green\">Conectado</span> <button onclick=\"sendCalendarInvite('${s.id}','${s.name}')\" class=\"btn btn-ghost btn-sm\" style=\"margin-left:4px;font-size:0.75rem\">Reenviar →</button>`
+        : `<button onclick=\"sendCalendarInvite('${s.id}','${s.name}')\" class=\"btn btn-primary btn-sm\">📧 Enviar invitación</button>`
       }</td>
       <td style="font-size:0.8rem">${s.lastAssigned ? new Date(s.lastAssigned).toLocaleString('es-ES') : '—'}</td>
     </tr>
@@ -207,6 +207,21 @@ function showMsg(msg, err) {
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 4000);
+}
+
+async function sendCalendarInvite(sellerId, sellerName) {
+  if (!confirm(`Enviar email de sincronización de calendario a ${sellerName}?`)) return;
+  try {
+    const res = await fetch(`/api/admin/sellers/${sellerId}/send-calendar-invite`, {
+      method: 'POST',
+      headers: { 'x-admin-key': ADMIN_KEY }
+    });
+    const data = await res.json();
+    if (data.success) showMsg('✅ ' + data.message);
+    else showMsg('❌ ' + (data.error || 'Error enviando email'), true);
+  } catch(e) {
+    showMsg('❌ Error de conexión', true);
+  }
 }
 </script>
 </body>

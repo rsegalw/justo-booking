@@ -86,4 +86,32 @@ async function sendConfirmation(meeting, seller) {
   });
 }
 
-module.exports = { sendConfirmation };
+/**
+ * Send calendar sync invitation email to a seller.
+ */
+async function sendCalendarSyncEmail(seller, authUrl) {
+  await transporter.sendMail({
+    from: `"Justo Booking" <${process.env.SMTP_USER}>`,
+    to: seller.email,
+    subject: '📅 Conecta tu Google Calendar con Justo Booking',
+    html: `
+      <div style="font-family: Inter, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <h2 style="margin: 0 0 8px">Hola ${seller.name} 👋</h2>
+        <p style="color: #555; margin: 0 0 24px">Para que el sistema de agendado funcione correctamente, necesitás conectar tu Google Calendar. Solo tarda 30 segundos.</p>
+        
+        <a href="${authUrl}" style="display:inline-block; background:#2563eb; color:#fff; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600; font-size:16px;">
+          📅 Conectar Google Calendar
+        </a>
+
+        <p style="margin: 24px 0 0; color: #888; font-size: 13px;">
+          Si el botón no funciona, copia este link en tu navegador:<br>
+          <a href="${authUrl}" style="color:#2563eb; word-break:break-all;">${authUrl}</a>
+        </p>
+        <hr style="border:none; border-top:1px solid #eee; margin:32px 0">
+        <p style="color:#aaa; font-size:12px; margin:0">Justo Booking · Este email fue generado automáticamente</p>
+      </div>
+    `,
+  });
+}
+
+module.exports = { sendConfirmation, sendCalendarSyncEmail };

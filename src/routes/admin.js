@@ -126,4 +126,21 @@ router.get('/metrics', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+
+
+/** POST /api/admin/sellers/:id/send-calendar-invite */
+router.post('/sellers/:id/send-calendar-invite', async (req, res, next) => {
+  try {
+    const seller = await prisma.seller.findUnique({ where: { id: req.params.id } });
+    if (!seller) return res.status(404).json({ error: 'Seller not found' });
+
+    const { getAuthUrl } = require('../services/googleCalendarService');
+    const { sendCalendarSyncEmail } = require('../services/emailService');
+
+    const authUrl = getAuthUrl(seller.id);
+    await sendCalendarSyncEmail(seller, authUrl);
+
+    res.json({ success: true, message: `Email enviado a ${seller.email}` });
+  } catch (err) { next(err); }
+});
 module.exports = router;
