@@ -10,7 +10,7 @@ async function getOAuthClient(seller) {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
+    (process.env.GOOGLE_REDIRECT_URI || "https://justo-booking-production.up.railway.app/api/auth/google/callback")
   );
 
   oauth2Client.setCredentials({
@@ -120,7 +120,7 @@ function getAuthUrl(sellerId) {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
+    (process.env.GOOGLE_REDIRECT_URI || "https://justo-booking-production.up.railway.app/api/auth/google/callback")
   );
 
   return oauth2Client.generateAuthUrl({
@@ -141,7 +141,7 @@ async function handleAuthCallback(code, sellerId) {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
+    (process.env.GOOGLE_REDIRECT_URI || "https://justo-booking-production.up.railway.app/api/auth/google/callback")
   );
 
   const { tokens } = await oauth2Client.getToken(code);
