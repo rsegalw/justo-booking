@@ -11,7 +11,6 @@
 <body>
   <div id="app">
 
-    <!-- ── Header ── -->
     <header class="header">
       <div class="container">
         <div class="logo">
@@ -22,14 +21,13 @@
       </div>
     </header>
 
-    <!-- ── Main Content ── -->
     <main class="main container">
 
       <!-- Step indicators -->
       <div class="steps" id="steps">
         <div class="step active" data-step="1">
           <div class="step-num">1</div>
-          <span>Tus datos</span>
+          <span>Tu restaurante</span>
         </div>
         <div class="step-divider"></div>
         <div class="step" data-step="2">
@@ -39,50 +37,113 @@
         <div class="step-divider"></div>
         <div class="step" data-step="3">
           <div class="step-num">3</div>
+          <span>Tus datos</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step" data-step="4">
+          <div class="step-num">4</div>
           <span>Confirmación</span>
         </div>
       </div>
 
-      <!-- ── Step 1: Qualification Form ── -->
+      <!-- ── Step 1: Restaurante info ── -->
       <div class="card" id="step-1">
         <h2 class="card-title">Cuéntanos sobre tu restaurante</h2>
-        <p class="card-subtitle">Estos datos nos ayudan a asignarte el mejor vendedor.</p>
+        <p class="card-subtitle">Solo 3 datos rápidos para empezar.</p>
 
-        <form id="qualForm" novalidate>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="name">Tu nombre completo *</label>
-              <input type="text" id="name" name="name" placeholder="Juan Pérez" required />
-              <span class="error-msg" id="name-err"></span>
-            </div>
-            <div class="form-group">
-              <label for="email">Correo electrónico *</label>
-              <input type="email" id="email" name="email" placeholder="juan@restaurante.com" required />
-              <span class="error-msg" id="email-err"></span>
-            </div>
+        <form id="restaurantForm" novalidate>
+          <div class="form-group">
+            <label for="restaurantName">Nombre de tu marca / restaurante *</label>
+            <input type="text" id="restaurantName" placeholder="La Cevichería, McDonald's, etc." required />
+            <span class="error-msg" id="restaurantName-err"></span>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="phone">Teléfono / WhatsApp *</label>
-              <input type="tel" id="phone" name="phone" placeholder="+51 999 999 999" required />
-              <span class="error-msg" id="phone-err"></span>
-            </div>
-            <div class="form-group">
-              <label for="restaurantName">Nombre del restaurante *</label>
-              <input type="text" id="restaurantName" name="restaurantName" placeholder="La Cevichería" required />
-              <span class="error-msg" id="restaurantName-err"></span>
-            </div>
+
+          <div class="form-group">
+            <label for="category">Categoría *</label>
+            <select id="category" required>
+              <option value="">Selecciona una categoría</option>
+              <option value="Comida rápida">Comida rápida</option>
+              <option value="Restaurante de mesa">Restaurante de mesa</option>
+              <option value="Cafetería / café">Cafetería / café</option>
+              <option value="Pizzería">Pizzería</option>
+              <option value="Sushi / japonesa">Sushi / japonesa</option>
+              <option value="Cevichería / mariscos">Cevichería / mariscos</option>
+              <option value="Pollo a la brasa">Pollo a la brasa</option>
+              <option value="Panadería / pastelería">Panadería / pastelería</option>
+              <option value="Heladería / postres">Heladería / postres</option>
+              <option value="Comida saludable">Comida saludable</option>
+              <option value="Otra">Otra</option>
+            </select>
+            <span class="error-msg" id="category-err"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="locations">¿Cuántos locales tienes? *</label>
+            <select id="locations" required>
+              <option value="">Selecciona</option>
+              <option value="1">1 local</option>
+              <option value="2-5">2 a 5 locales</option>
+              <option value="6-20">6 a 20 locales</option>
+              <option value="20+">Más de 20 locales</option>
+            </select>
+            <span class="error-msg" id="locations-err"></span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">
+            Ver horarios disponibles →
+          </button>
+        </form>
+      </div>
+
+      <!-- ── Step 2: Slot Picker ── -->
+      <div class="card hidden" id="step-2">
+        <h2 class="card-title">Elige un horario</h2>
+        <p class="card-subtitle">Horarios disponibles en tu zona: <strong id="tzDisplay"></strong></p>
+
+        <div id="calendarNav" class="cal-nav">
+          <button class="cal-nav-btn" id="prevWeek" onclick="prevWeek()">← Anterior</button>
+          <span id="weekRange" class="week-range"></span>
+          <button class="cal-nav-btn" id="nextWeek" onclick="nextWeek()">Siguiente →</button>
+        </div>
+
+        <div id="slotsContainer" class="slots-container">
+          <div class="loading">Cargando horarios disponibles...</div>
+        </div>
+
+        <button class="btn btn-ghost" onclick="goToStep(1)">← Volver</button>
+      </div>
+
+      <!-- ── Step 3: Contact info ── -->
+      <div class="card hidden" id="step-3">
+        <h2 class="card-title">¿A quién le agendamos?</h2>
+        <p class="card-subtitle">Horario seleccionado: <strong id="selectedSlotDisplay"></strong></p>
+
+        <form id="contactForm" novalidate>
+          <div class="form-group">
+            <label for="name">Tu nombre completo *</label>
+            <input type="text" id="name" placeholder="Juan Pérez" required />
+            <span class="error-msg" id="name-err"></span>
+          </div>
+          <div class="form-group">
+            <label for="email">Correo electrónico *</label>
+            <input type="email" id="email" placeholder="juan@restaurante.com" required />
+            <span class="error-msg" id="email-err"></span>
+          </div>
+          <div class="form-group">
+            <label for="phone">Teléfono / WhatsApp *</label>
+            <input type="tel" id="phone" placeholder="+51 999 999 999" required />
+            <span class="error-msg" id="phone-err"></span>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="city">Ciudad *</label>
-              <input type="text" id="city" name="city" placeholder="Lima" required />
+              <input type="text" id="city" placeholder="Lima" required />
               <span class="error-msg" id="city-err"></span>
             </div>
             <div class="form-group">
               <label for="country">País *</label>
-              <select id="country" name="country" required>
-                <option value="">Selecciona un país</option>
+              <select id="country" required>
+                <option value="">País</option>
                 <option value="PE">Perú</option>
                 <option value="MX">México</option>
                 <option value="CO">Colombia</option>
@@ -94,32 +155,17 @@
               <span class="error-msg" id="country-err"></span>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary btn-full">
-            Ver horarios disponibles →
+
+          <button type="submit" class="btn btn-primary btn-full" id="confirmBtn">
+            Confirmar demo →
           </button>
         </form>
+
+        <button class="btn btn-ghost" style="margin-top:1rem" onclick="goToStep(2)">← Cambiar horario</button>
       </div>
 
-      <!-- ── Step 2: Slot Picker ── -->
-      <div class="card hidden" id="step-2">
-        <h2 class="card-title">Elige un horario</h2>
-        <p class="card-subtitle">Todos los horarios se muestran en tu zona horaria: <strong id="tzDisplay"></strong></p>
-
-        <div id="calendarNav" class="cal-nav">
-          <button class="cal-nav-btn" id="prevWeek" onclick="prevWeek()">← Semana anterior</button>
-          <span id="weekRange" class="week-range"></span>
-          <button class="cal-nav-btn" id="nextWeek" onclick="nextWeek()">Semana siguiente →</button>
-        </div>
-
-        <div id="slotsContainer" class="slots-container">
-          <div class="loading">Cargando horarios disponibles...</div>
-        </div>
-
-        <button class="btn btn-ghost" onclick="goToStep(1)">← Volver</button>
-      </div>
-
-      <!-- ── Step 3: Confirmation ── -->
-      <div class="card hidden" id="step-3">
+      <!-- ── Step 4: Confirmation ── -->
+      <div class="card hidden" id="step-4">
         <div class="confirm-icon">✅</div>
         <h2 class="card-title">¡Tu demo está confirmada!</h2>
         <p class="card-subtitle">Te enviamos un correo con todos los detalles.</p>
@@ -138,7 +184,7 @@
 
     <footer class="footer">
       <div class="container">
-        <p>© 2024 Justo · Powered by technology for restaurants</p>
+        <p>© 2025 Justo · Tecnología para restaurantes</p>
       </div>
     </footer>
   </div>

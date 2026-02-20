@@ -10,28 +10,21 @@ const { getFreeBusy } = require('./googleCalendarService');
 
 const SLOT_DURATION = parseInt(process.env.BOOKING_SLOT_DURATION_MIN || '30', 10);
 const DAYS_AHEAD = parseInt(process.env.BOOKING_DAYS_AHEAD || '14', 10);
-const START_HOUR = parseInt(process.env.BOOKING_START_HOUR || '8', 10);
-const END_HOUR = parseInt(process.env.BOOKING_END_HOUR || '18', 10);
+const START_HOUR = 9;   // 9:00 AM seller local time
+const END_HOUR = 18;    // 6:00 PM seller local time
 
-/**
- * Generate candidate 30-min slots for a seller within a date range,
- * bounded by their business hours in their local timezone.
- *
- * @param {string} sellerTimezone  IANA timezone
- * @param {dayjs.Dayjs} fromUtc
- * @param {dayjs.Dayjs} toUtc
- * @returns {Array<{start: string, end: string}>} UTC ISO strings
- */
 function generateCandidateSlots(sellerTimezone, fromUtc, toUtc) {
   const slots = [];
   let cursor = fromUtc.startOf('hour');
 
   while (cursor.isBefore(toUtc)) {
-    const localHour = cursor.tz(sellerTimezone).hour();
+    const local = cursor.tz(sellerTimezone);
+    const dayOfWeek = local.day(); // 0=Sun, 6=Sat
+    const hour = local.hour();
 
-    if (localHour >= START_HOUR && localHour < END_HOUR) {
+    // Only Mon-Fri (1-5), 9:00-18:00
+    if (dayOfWeek >= 1 && dayOfWeek <= 5 && hour >= START_HOUR && hour < END_HOUR) {
       const end = cursor.add(SLOT_DURATION, 'minute');
-      // Don't add slots that extend past END_HOUR
       if (end.tz(sellerTimezone).hour() <= END_HOUR) {
         slots.push({ start: cursor.toISOString(), end: end.toISOString() });
       }
@@ -42,13 +35,9 @@ function generateCandidateSlots(sellerTimezone, fromUtc, toUtc) {
   return slots;
 }
 
-/**
- * Check if a candidate slot overlaps with any busy interval.
- */
 function isSlotFree(slot, busyIntervals) {
   const slotStart = new Date(slot.start).getTime();
   const slotEnd = new Date(slot.end).getTime();
-
   return !busyIntervals.some((busy) => {
     const busyStart = new Date(busy.start).getTime();
     const busyEnd = new Date(busy.end).getTime();
@@ -56,13 +45,6 @@ function isSlotFree(slot, busyIntervals) {
   });
 }
 
-/**
- * Get all available slots across all active sellers.
- * Returns slots grouped by date, with at least one available seller per slot.
- *
- * @param {string} prospectTimezone  IANA timezone for display
- * @returns {Object} { dates: { "2024-03-01": [{ startUtc, endUtc, startLocal, endLocal }] } }
- */
 async function getAvailableSlots(prospectTimezone) {
   const sellers = await prisma.seller.findMany({
     where: { isActive: true, NOT: { refreshToken: null } },
@@ -73,15 +55,10 @@ async function getAvailableSlots(prospectTimezone) {
   const nowUtc = dayjs.utc();
   const toUtc = nowUtc.add(DAYS_AHEAD, 'day').endOf('day');
 
-  // Fetch free/busy for all sellers in parallel
   const sellerBusy = await Promise.all(
     sellers.map(async (seller) => {
       try {
-        const busy = await getFreeBusy(
-          seller,
-          nowUtc.toISOString(),
-          toUtc.toISOString()
-        );
+        const busy = await getFreeBusy(seller, nowUtc.toISOString(), toUtc.toISOString());
         return { seller, busy };
       } catch (err) {
         console.error(`⚠️  Could not fetch calendar for ${seller.email}:`, err.message);
@@ -90,16 +67,11 @@ async function getAvailableSlots(prospectTimezone) {
     })
   );
 
-  // Also get confirmed meetings from our DB (source of truth for double-booking check)
   const confirmedMeetings = await prisma.meeting.findMany({
-    where: {
-      status: 'CONFIRMED',
-      startUtc: { gte: nowUtc.toDate() },
-    },
+    where: { status: 'CONFIRMED', startUtc: { gte: nowUtc.toDate() } },
     select: { sellerId: true, startUtc: true, endUtc: true },
   });
 
-  // Build a map: sellerId → busy intervals (Google + our DB)
   const busyMap = {};
   for (const { seller, busy } of sellerBusy) {
     busyMap[seller.id] = [...busy];
@@ -109,8 +81,7 @@ async function getAvailableSlots(prospectTimezone) {
     busyMap[m.sellerId].push({ start: m.startUtc.toISOString(), end: m.endUtc.toISOString() });
   }
 
-  // Collect all unique free slots across sellers
-  const slotMap = new Map(); // key: startUtc ISO → { startUtc, endUtc, sellerCount }
+  const slotMap = new Map();
 
   for (const { seller } of sellerBusy) {
     const candidates = generateCandidateSlots(seller.timezone, nowUtc, toUtc);
@@ -126,7 +97,7 @@ async function getAvailableSlots(prospectTimezone) {
     }
   }
 
-  // Convert to prospect's timezone, group by local date
+  // Group by prospect's local date
   const dates = {};
   for (const slot of slotMap.values()) {
     const localStart = dayjs(slot.startUtc).tz(prospectTimezone);
@@ -143,7 +114,6 @@ async function getAvailableSlots(prospectTimezone) {
     });
   }
 
-  // Sort slots within each date
   for (const date of Object.keys(dates)) {
     dates[date].sort((a, b) => a.startUtc.localeCompare(b.startUtc));
   }
