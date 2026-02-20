@@ -87,9 +87,10 @@ async function assignSeller(availableSellerIds, context = {}) {
   if (!selected) return null;
 
   // Update routing state
-  await prisma.routingState.update({
+  await prisma.routingState.upsert({
     where: { id: 'global' },
-    data: { lastSellerId: selected.id },
+    update: { lastSellerId: selected.id },
+    create: { id: 'global', lastSellerId: selected.id },
   });
 
   return { seller: selected, strategy: ACTIVE_STRATEGY };
